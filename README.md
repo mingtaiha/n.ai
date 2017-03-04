@@ -9,3 +9,9 @@ n.ai solves the two problems
 #TODO
 1) Google Maps API
 2) Database of Stores/Food Items
+
+Google Maps, currently interfacing with Python
+SERVER KEY: 
+
+It is HIGHLY RECOMMENDED to use virtualenv to install packages
+pip install -U googlemaps
