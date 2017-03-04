@@ -5,7 +5,7 @@ import time
 
 def gen_distance_matrix(start, stores, depart_delay):
 
-    # :param start: Address as a string. 
+    # :param start: Address as a string.
     #   E.g. '1600 Pennsylvania Ave NW, Washington, DC 20006'
 
     # :param stores: List of Addresses, each element as a string
@@ -20,7 +20,7 @@ def gen_distance_matrix(start, stores, depart_delay):
     # locations. The indexing format always follows [start, *stores]
 
     # Create Google Maps client with Server Key
-    gmaps = googlemaps.Client(key='AIzaSyC7gFkRVm3oUKLC3ZTNmuSAxSnXxXhGh0M')
+    gmaps = googlemaps.Client(key=app.config["GOOGLE_MAPS_API_KEY"])
 
     # Create list of lat/lng for start location and stores
     start_list = list()
