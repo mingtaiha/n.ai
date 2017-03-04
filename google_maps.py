@@ -24,7 +24,7 @@ def gen_distance_matrix(start, stores, depart_delay):
     gmaps = googlemaps.Client(key=app.config["GOOGLE_MAPS_API_KEY"])
 
     # Create list of lat/lng for start location and stores
-    start_list = list()
+    loc_list = list()
     gcode_start = gmaps.geocode(start)
     loc_list.append(gcode_start[0]['geometry']['location'])
 
@@ -32,7 +32,7 @@ def gen_distance_matrix(start, stores, depart_delay):
         gcode_store = gmaps.geocode(store)
         loc_list.append(gcode_store[0]['geometry']['location'])
 
-    pprint(start_list)
+    pprint(loc_list)
 
     # Setting Departure Time
     depart_time = int(time.time()) + depart_delay
