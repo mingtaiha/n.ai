@@ -1,4 +1,5 @@
 from pprint import pprint
+import app, db
 import googlemaps
 import time
 

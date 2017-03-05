@@ -1,2 +1,5 @@
 venv/
 venv/*
+*.pyc
+migrations/
+migrations/*

@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" rel="stylesheet">
+    <title>Foods</title>
+  </head>
+  <body>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+          {% for message in messages %}
+            <li> {{ message }} </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form action="{{ url_for('food') }}" id="food" method="POST" name="food">
+      <div class="links-box col-xs-12 col-sm-8 col-sm-offset-1">
+
+        <div class="form-group">
+          <h1> Add Foods </h1>
+          <br>
+          <label for="name">Name</label>
+          <input class="form-control" name="name" placeholder="10" type="text">
+          <br>
+          <label for="fats">Fats (g)</label>
+          <input class="form-control" name="fats" placeholder="10" type="number" min="0">
+          <br>
+          <label for="carbs">Carbohydrates (g)</label>
+          <input class="form-control" name="carbs" placeholder="10" type="number" min="0">
+          <br>
+          <label for="proteins">Proteins (g)</label>
+          <input class="form-control" name="proteins" placeholder="10" type="number" min="0">
+          <br>
+          <label for="gram_unit_ratio">Gram to Unit Ratio (g/unit)</label>
+          <input class="form-control" name="gram_unit_ratio" placeholder="100" type="number" min=0">
+          <br>
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-primary" type="submit">Add</button>
+        </div>
+
+      </div>
+    </form>
+
+    {% for food in foods %}
+    <h3>{{ food.id }}: {{ food.name }}, {{ food.fats }}, {{ food.carbs }}, {{ food.proteins }}, {{ food.gram_unit_ratio }}!!</h3><br>
+    {% endfor %}
+
+  </body>
+</html>
