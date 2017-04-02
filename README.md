@@ -14,7 +14,7 @@ $ virtualenv venv
 $ source venv/bin/activate
 ```
 
-Next we need to install the project dependencies, which are listed in `pip.req`.
+Next we need to install the project dependencies, which are listed in `pip.req`. If you have issues, try install MySQL python dev libs.
 
 ```
 (venv) $ pip install -r pip.req
