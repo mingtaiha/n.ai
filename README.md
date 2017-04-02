@@ -50,7 +50,7 @@ Now we're ready to start our server which is as simple as:
 (venv) $ ./run.py
 ```
 
-If we want to expose this to a public facing URL, we can use [ngrok](https://ngrok.com/):
+Optional: If we want to expose this to a public facing URL, we can use [ngrok](https://ngrok.com/):
 
 ```
 (venv) $ ./ngrok http 5000
@@ -58,4 +58,4 @@ If we want to expose this to a public facing URL, we can use [ngrok](https://ngr
 
 ## Credit
 
-Built by Sakib Jalal at Rutgers University, kept under the MIT License.
+Built by Sakib Jalal & Ming Tai Ha at Rutgers University, kept under the MIT License.
