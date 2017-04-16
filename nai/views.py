@@ -51,6 +51,11 @@ def food():
         return redirect(url_for('food'))
 
 
+@app.route('/gay', methods=['GET'])
+def memes():
+    return "hi"
+
+
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404

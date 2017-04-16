@@ -37,6 +37,7 @@ class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
+    instructions = db.Column(db.String(8192), nullable=True)
 
 
 class StoreFoodMap(db.Model):
