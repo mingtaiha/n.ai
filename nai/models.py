@@ -13,9 +13,8 @@ class Food(db.Model):
     __tablename__ = 'foods'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
-    """ grams per unit. ex: 1 egg = 100 grams """
-    gram_unit_ratio = db.Column(db.Float, nullable=True)
-    """ Normalize these ratios to 1 """
+    calories = db.Column(db.Float, nullable=True)
+    """ # grams of _ per 100g of food """
     fats = db.Column(db.Float, nullable=False)
     carbs = db.Column(db.Float, nullable=False)
     proteins = db.Column(db.Float, nullable=False)
@@ -36,15 +35,22 @@ class Person(db.Model):
 class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64), nullable=False)
-    instructions = db.Column(db.String(8192), nullable=True)
+    name = db.Column(db.String(128), nullable=False)
+    instructions = db.Column(db.String(16000), nullable=True)
+    cook_time = db.Column(db.DateTime, nullable=True)
+    prep_time = db.Column(db.DateTime, nullable=True)
+    dairy = db.Column(db.Integer, nullable=True)  #dairy
+    starch = db.Column(db.Integer, nullable=True)  #starch
+    veggies = db.Column(db.Integer, nullable=True)  #veggies
+    protein = db.Column(db.Integer, nullable=True)  #proteins
+    cuisine = db.Column(db.Integer, nullable=True)  #cuisines
 
 
 class StoreFoodMap(db.Model):
     __tablename__ = 'store_food'
     id = db.Column(db.Integer, primary_key=True)
-    price = db.Column(db.Float, nullable=False) #per_gram
-    quantity = db.Column(db.Integer, nullable=False) #grams
+    price = db.Column(db.Float, nullable=False) #per 100g unit
+    quantity = db.Column(db.Integer, nullable=False) #100g units
     food_id = db.Column(db.Integer, db.ForeignKey("foods.id"), nullable=False)
     store_id = db.Column(db.Integer, db.ForeignKey("stores.id"), nullable=False)
 
@@ -68,7 +74,6 @@ class PersonRecipeMap(db.Model):
 class FoodRecipeMap(db.Model):
     __tablename__ = 'food_recipe'
     id = db.Column(db.Integer, primary_key=True)
-    vol = db.Column(db.Integer, nullable=False)     #cups
     grams = db.Column(db.Integer, nullable=False)   #grams
     food_id = db.Column(db.Integer, db.ForeignKey("foods.id"), nullable=False)
     recipe_id = db.Column(db.Integer, db.ForeignKey("recipes.id"), nullable=False)

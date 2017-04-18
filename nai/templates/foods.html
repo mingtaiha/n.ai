@@ -33,8 +33,8 @@
           <label for="proteins">Proteins (g)</label>
           <input class="form-control" name="proteins" placeholder="10" type="number" min="0">
           <br>
-          <label for="gram_unit_ratio">Gram to Unit Ratio (g/unit)</label>
-          <input class="form-control" name="gram_unit_ratio" placeholder="100" type="number" min=0">
+          <label for="gram_unit_ratio">Calories (kcal)</label>
+          <input class="form-control" name="calories" placeholder="100" type="number" min=0">
           <br>
         </div>
 
@@ -46,7 +46,7 @@
     </form>
 
     {% for food in foods %}
-    <h3>{{ food.id }}: {{ food.name }}, {{ food.fats }}, {{ food.carbs }}, {{ food.proteins }}, {{ food.gram_unit_ratio }}!!</h3><br>
+    <h3>{{ food.id }}: {{ food.name }}, {{ food.fats }}, {{ food.carbs }}, {{ food.proteins }}, {{ food.calories }}!!</h3><br>
     {% endfor %}
 
   </body>

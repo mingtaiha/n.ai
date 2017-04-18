@@ -59,3 +59,5 @@ Optional: If we want to expose this to a public facing URL, we can use [ngrok](h
 ## Credit
 
 Built by Sakib Jalal & Ming Tai Ha at Rutgers University, kept under the MIT License.
+
+ALL STORES SELL ITEMS IN 100g PACKAGES, NO EXCEPTIONS
