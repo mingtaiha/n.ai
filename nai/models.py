@@ -36,6 +36,7 @@ class Recipe(db.Model):
     __tablename__ = 'recipes'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(128), nullable=False)
+    ingredients = db.Column(db.String(16000), nullable=True)
     instructions = db.Column(db.String(16000), nullable=True)
     cook_time = db.Column(db.DateTime, nullable=True)
     prep_time = db.Column(db.DateTime, nullable=True)

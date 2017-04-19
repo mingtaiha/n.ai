@@ -75,16 +75,16 @@ def genrecipes():
                         cook_time=get_delta(val["cook_time"]), prep_time=get_delta(val["prep_time"]),
                         dairy=int(val["recipe_index"][0]), starch=int(val["recipe_index"][1]),
                         veggies=int(val["recipe_index"][2]), protein=int(val["recipe_index"][3]),
-                        cuisine=int(val["recipe_index"][4]))
+                        cuisine=int(val["recipe_index"][4], ingredients=condense_str(val["ingredients"])))
             db.session.add(recipe)
             db.session.commit()
-            # foodrecipemap from val["ingredients"]
+            # add foodrecipemappings from val["ingredients"]
             for ingredient_str in val["ingredients"]:
                 food, grams = get_food_from_ingredient_str(foods, ingredient_str)
                 if food is not None:
                     mapping = FoodRecipeMap(grams=grams, food_id=food.id, recipe_id=recipe.id)
                     db.session.add(mapping)
-            db.session.commit()
+                    db.session.commit()
     return "recipes generated"
 
 
