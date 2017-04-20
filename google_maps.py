@@ -1,10 +1,20 @@
 from pprint import pprint
-import app, db
+#import app, db
 import googlemaps
 import time
 
 
-def gen_distance_matrix(start, stores, depart_delay):
+test_start = "110 Frelinghuysen Road Piscataway, NJ 08854-8019"
+
+
+test_stores = [ "424 Raritan Ave, Highland Park, NJ 08904",
+                "100 Grand Ave, North Brunswick Township, NJ 08902",
+                "14 W Prospect St, East Brunswick, NJ 08816"
+                ]
+
+test_delay = 0
+
+def get_distance_matrix(start, stores, depart_delay):
 
     # :param start: Address as a string.
     #   E.g. '1600 Pennsylvania Ave NW, Washington, DC 20006'
@@ -21,18 +31,23 @@ def gen_distance_matrix(start, stores, depart_delay):
     # locations. The indexing format always follows [start, *stores]
 
     # Create Google Maps client with Server Key
-    gmaps = googlemaps.Client(key=app.config["GOOGLE_MAPS_API_KEY"])
+    #gmaps = googlemaps.Client(key=app.config["GOOGLE_MAPS_API_KEY"])
+    GOOGLE_MAPS_API_KEY = "AIzaSyC7gFkRVm3oUKLC3ZTNmuSAxSnXxXhGh0M"
+    gmaps = googlemaps.Client(GOOGLE_MAPS_API_KEY)
 
     # Create list of lat/lng for start location and stores
-    loc_list = list()
+    start_list = list()
     gcode_start = gmaps.geocode(start)
+    #pprint(gcode_start)
+    loc_list = list()
     loc_list.append(gcode_start[0]['geometry']['location'])
 
     for store in stores:
         gcode_store = gmaps.geocode(store)
+        #pprint(gcode_store)
         loc_list.append(gcode_store[0]['geometry']['location'])
 
-    pprint(loc_list)
+    #pprint(start_list)
 
     # Setting Departure Time
     depart_time = int(time.time()) + depart_delay
@@ -40,9 +55,11 @@ def gen_distance_matrix(start, stores, depart_delay):
     # Get Google Maps client to make distance matrix
     d_mat = gmaps.distance_matrix(loc_list, loc_list, departure_time=depart_time, mode='driving', units='miles')
 
-    pprint(d_mat)
+    #pprint(d_mat)
 
     # Cleaning distance matrix to be a list of list of (duration_in_traffic, distance)
+    # The row index corresponds to the start address, col index corresponds to end address
+    # Matrix is symmetric
     distance_matrix = list()
     for src in range(len(d_mat['rows'])):
         tmp_list = list()
@@ -51,9 +68,56 @@ def gen_distance_matrix(start, stores, depart_delay):
                             d_mat['rows'][src]['elements'][dst]['distance']['value'] / 1000.))
         distance_matrix.append(tmp_list)
 
+    pprint(distance_matrix)
     return distance_matrix
 
 
+def get_path(start, stores, time_delay, dist_mat=None):
+
+    # Returns a cycle which starts at `start` and goes to all stores in the stores list
+    # Generates shortest Hamiltonian path greedily using nearest neighbors, then adds path
+    # from last store visited to start
+    
+    if dist_mat == None:
+        dist_mat = get_distance_matrix(start, stores, time_delay)
+    
+    path = [0]
+    cost = list()
+
+    num_locations  = len(dist_mat)
+    next_loc = 0
+    min_dist = 1000000000
+    metric = 0
+    src = 0 
+
+    while len(path) < (num_locations):
+        pprint(path)
+        print "Starting at {0}".format(src)
+        for dst in range(len(dist_mat)):
+            if dst not in path:
+                if min_dist > dist_mat[src][dst][metric]:
+                    next_loc = dst
+                    min_dist = dist_mat[src][dst][metric]
+            else:
+                print "Already looked at {0}".format(dst)
+        path.append(next_loc)
+        cost.append(min_dist)
+        next_loc = 0
+        min_dist = 1000000000
+
+    
+    cost.append(dist_mat[path[-1]][0][metric])
+    path.append(0)
+
+    pprint(path)
+    pprint(cost)
+    return path, cost
+
+
+
+
 if __name__ == "__main__":
+
+    get_path(test_start, test_stores, test_delay)
 
     print "OK"
