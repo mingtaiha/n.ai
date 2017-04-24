@@ -1,7 +1,10 @@
 import json
 import pprint
 
-spices = [  'paprika',
+
+
+master_ingrd_dict = {
+'spices' : ['paprika',
             'cayenne pepper',
             'chili powder',
             'curry powder',
@@ -9,6 +12,7 @@ spices = [  'paprika',
             'vanilla bean',
             'kosher salt',
             'bay leaf',
+            'bay leaves',
             'crushed red pepper',
             'ginger',
             'baking powder',
@@ -18,7 +22,7 @@ spices = [  'paprika',
             'mint',
             'tarragon',
             'chives',
-            'fennel'
+            'fennel',
             'parsley',
             'sage',
             'allspice',
@@ -39,31 +43,93 @@ spices = [  'paprika',
             'smoked paprika',
             'garlic powder',
             'onion powder',
+            'almond extract',
             'coriander',
+            'salt',
+            'garlic salt',
+            'celery salt',
             'black pepper',
             'peppercorns',
             'white pepper',
             'five spice',
+            '5-spice',
+            'five spice powder',
+            '5-spice powder',
+            'cilantro',
+            'old bay',
             'mustard powder',
-            'sesame seeds'      ]
+            'pepper flakes',
+            'sesame seeds'      ],
 
-oils = [    'sunflower oil',
+'others':[  'worcestershire sauce',
+            'soy sauce',
+            'cocoa powder',
+            'chocolate chip',
+            'light soy sauce',
+            'dark soy sauce',
+            'hoisin sauce',
+            'corn starch',
+            'water',
+            'capers',
+            'granulated sugar',
+            'sugar',
+            'brown sugar',
+            'molasses',
+            "confectioner's sugar",
+            'lemon juice',
+            'lime juice',
+            'lemon zest',
+            'lime zest',
+            'zest',
+            'v-8 juice',
+            'white wine',
+            'red wine',
+            'red wine vinegar',
+            'white wine vinegar',
+            'white vinegar',
+            'vegetable stock',
+            'beef stock',
+            'chicken stock',
+            'fish sauce',
+            'whole grain mustard',
+            'mustard',
+            'ketchup',
+            'dijon mustard',
+            'honey',
+            'agave',
+            'mayonnaise',
+            'beer',
+            'whiskey',
+            'cognac',
+            'teriyaki sauce',
+            'brandy',
+            'vodka',
+            'espresso',
+            'sherry'            ],
+            
+
+'oils':[    'sunflower oil',
             'peanut oil',
             'palm oil',
             'cottonseed oil',
             'olive oil',
             'extra virgin olive oil',
             'coconut oil',
+            'canola oil',
             'corn oil'
             'sesame oil',
             'soybean oil',
             'vegetable oil',
             'rapeseed oil',
             'lard',
-            'suet',             ]
+            'vegetable shortening',
+            'shortening',
+            'suet',             
+            'fat'               ],
 
-milk =  [   'salted butter',
+'milk':[   'salted butter',
             'unsalted butter',
+            'butter',
             'margarine',
             'buttermilk',
             'condensed milk'
@@ -74,24 +140,27 @@ milk =  [   'salted butter',
             'whole milk',
             'skim milk',
             'reduced fat milk',
-            'whey'              ]
+            'whey'              ],
 
-cream = [   'sour cream',
+'cream':[   'sour cream',
             'clotted cream',
-            'cream'
+            'cream',
+            'heavy cream',
             'whipped cream',
             'creme fraiche',
-            'ice cream'         ]
+            'ice cream'         ],
 
-yogurt = [  'yogurt',
+'yogurt':[  'yogurt',
             'greek yogurt',
-            'plain yogurt'      ]
+            'plain yogurt'      ],
 
-cheese = [  'cheddar cheese',
+'cheese':[  'cheddar cheese',
             'cream cheese',
             'goat cheese',
             'feta',
             'brie',
+            'ricotta cheese',
+            'jalapeno jack',
             'cream cheese',
             'cottage cheese',
             'mozzarella',
@@ -108,8 +177,9 @@ cheese = [  'cheddar cheese',
             'gorgonzola',
             'emmental cheese',
             'ricotta',
-            'swiss cheese'
-            'colby cheese'
+            'swiss cheese',
+            'colby cheese',
+            'parmesan cheese',
             'muenster cheese',
             'pecorino',
             'manchego',
@@ -124,25 +194,25 @@ cheese = [  'cheddar cheese',
             'mascarpone',
             'limburger',
             'American Cheese',
-            'processed cheese'      ]
+            'processed cheese'      ],
 
-potatoes = ['potato',
+'potatoes':['potato',
             'sweet potato',
             'taro',
             'yam'
             'idaho potato',
             'russet potato',
             'yukon gold',
-            'fingerlings'       ]
+            'fingerlings'       ],
 
-rice =  [   'brown rice',
+'rice':[   'brown rice',
             'white rice',
             'basmati',
             'wild rice',
             'jasmine rice',
-            'glutinous rice'    ]
+            'glutinous rice'    ],
 
-breads =  [ 'barley',
+'breads':[ 'barley',
             'millet',
             'buckwheat',
             'corn',
@@ -152,6 +222,13 @@ breads =  [ 'barley',
             'instant oats',
             'quinoa',
             'rye',
+            'granola',
+            'all-purpose flour',
+            'semolina',
+            'whole-wheat flour',
+            'enriched flour',
+            'cake flour',
+            'self-rising flour',
             'sourdough',
             'white bread',
             'rye bread',
@@ -170,15 +247,16 @@ breads =  [ 'barley',
             'biscuit',
             'bun',
             'hot dog bun',
-            'hamburger bun'     ]
+            'hamburger bun'     ],
 
-pastas = [  'angel hair',
+'pastas':[  'angel hair',
             'linguine',
             'fettuccine',
             'orecchiette',
             'orzo',
             'rigatoni',
             'spaghetti',
+            'gnocchi',
             'fusilli',
             'farfalle',
             'penne'
@@ -190,23 +268,26 @@ pastas = [  'angel hair',
             'soba',
             'udon',
             'rice vermicelli',
-            'noodle'            ]
+            'noodle'            ],
 
-shrooms = [ 'shittake',
+'shrooms':[ 'shittake',
             'morel',
             'enokitake',
             'oyster mushroom',
             'white mushroom',
             'white button',
-            'portobello'        ]
+            'portobello'        ],
 
-fruits = [  "apple",
+'fruits':[  "apple",
             "pineapple",
             "grapefruit",
             "banana",
             "orange",
+            'blueberry',
             "strawberry",
             "grape",
+            'raisin',
+            'cranberry',
             "lemon",
             "cherry",
             "pear",
@@ -228,14 +309,14 @@ fruits = [  "apple",
             'lychee',
             'date',
             'passion fruit'
-            'gppseberry',
+            'gooseberry',
             'persimmon',
             'lime',
             "nectarine",
             "fig",
-            "pomegranate"   ]
+            "pomegranate"   ],
 
-greens = [  'spinach',
+'greens':[  'spinach',
             'kale',
             'cabbage',
             'broccoli',
@@ -262,9 +343,17 @@ greens = [  'spinach',
             'arugula',
             'watercress'
             'butternut squash',
-            'eggplant']
+            'eggplant'              
+            'diced tomato',
+            'crushed tomato',
+            'tomato paste',
+            'jalapeno',
+            'radish',
+            'bok choy'              ],
+          
 
-legumes = [ 'bean',
+
+'legumes':[ 'bean',
             'soybean',
             'nut',
             'lentil',
@@ -284,6 +373,9 @@ legumes = [ 'bean',
             'snap pea',
             'sugar snap pea',
             'snow pea',
+            'peanut butter',
+            'almond butter',
+            'cashew butter',
             'peanut',
             'almond',
             'walnut',
@@ -294,10 +386,10 @@ legumes = [ 'bean',
             'brazil nut',
             'pine nut',
             'macadamia',
-            'chestnut'      ]
+            'chestnut'      ],
 
 
-roots = [   'carrot',
+'roots':[   'carrot',
             'parsnip',
             'turnip',
             'rutabaga',
@@ -320,16 +412,16 @@ roots = [   'carrot',
             'white onion',
             'asparagus',
             'chicory',
-            'garlic'        ]
+            'garlic'        ],
 
 
-eggs =  [   'egg',
+'eggs':[   'egg',
             'chicken egg',
             'duck egg',
             'goose egg',
-            'quail egg'     ]
+            'quail egg'     ],
 
-lamb =  [   'lamb',
+'lamb':[   'lamb',
             'lamb chop',
             'lamb loin chop',
             'lamb rack',
@@ -339,9 +431,9 @@ lamb =  [   'lamb',
             'lamb shank',
             'lamb sirloin',
             'boneless lamb leg',
-            'bone-in lamb leg'  ]
+            'bone-in lamb leg'  ],
 
-pork =  [   'pork',
+'pork':[   'pork',
             'pork shoulder',
             'pork butt',
             'pork loin',
@@ -358,9 +450,10 @@ pork =  [   'pork',
             'spare rib',
             'pork sausage',
             'ground pork',
-            'ham'               ]
+            'bacon',
+            'ham'               ],
 
-beef =  [   'beef',
+'beef':[   'beef',
             't-bone steak',
             'strip steak',
             'chuck steak',
@@ -379,9 +472,9 @@ beef =  [   'beef',
             'hanger steak',
             'beef tenderloin',
             'ground beef',
-            'beef sausage'      ]
+            'beef sausage'      ],
 
-chicken = [ 'chicken',
+'chicken':[ 'chicken',
             'chicken breast',
             'chicken wing',
             'chicken drum',
@@ -389,8 +482,127 @@ chicken = [ 'chicken',
             'chicken thigh',
             'chicken leg',
             'whole chicken',
-            'chicken quarter',
-            'whole chicken'     ]
+            'chicken quarter'    ]
+
+}
+
+
+
+def edit_distance(str1, str2):
+    
+    mat = [ [0 for i in range(len(str2) + 1)] for i in range(len(str1) + 1) ]
+
+    for i in range(1, len(str1)+1):
+        mat[i][0] = i
+
+    for j in range(1, len(str2)+1):
+        mat[0][j] = j
+
+    sub_cost = 0
+    for j in range(1, len(str2)+1):
+        for i in range(1, len(str1)+1):
+            if str1[i-1] == str2[j-1] :
+                sub_cost = 0
+            else:
+                sub_cost = 1
+            
+            mat[i][j] = min(mat[i-1][j] + 1, mat[i][j-1] + 1, mat[i-1][j-1] + sub_cost)
+    #print mat
+    return mat[-1][-1]
+
+def word_compare(ingrd_list_rec, ingrd_list_real, match_diff=2):
+
+    list_match = list()
+    for word_real in ingrd_list_real:
+        for word_rec in ingrd_list_rec:
+            if edit_distance(word_rec, word_real) < match_diff:
+                list_match.append(word_real)
+    """
+    for word_real in ingrd_list_real:
+        for word_rec in ingrd_list_rec:
+            dist = edit_distance(word_rec, word_real)
+            list_match.append((word_real, dist))
+    
+    print list_match
+    for word_match in list_match:
+        if word_match[1] > 3:
+            list_match = list()
+            break
+    """
+    if len(list_match) > 0:
+        #print ingrd_list_real
+        #print ingrd_list_rec
+        #print list_match
+        #print
+        return list_match
+        
+    return None
+                
+def best_match(ingrd_rec, ingr_category):
+    
+    
+    ingrd_list_rec = ingrd_rec.split('(')[0].split(',')[0].split()
+
+    best_match_ingrds = list()
+    best_match_list = list()
+    best_match_diff = 10000
+    match_list = list()
+
+    for ingrd_real in ingr_category:
+        ingrd_list_real = ingrd_real.split()
+
+        match_list = word_compare(ingrd_list_rec, ingrd_list_real)
+
+        if match_list != None:
+            #print ingrd_rec
+            #print ingrd_list_real
+            #print match_list
+            #print
+            match_goodness = abs(len(match_list) - len(ingrd_list_rec))     # Measures how many words match
+            if match_goodness < best_match_diff:
+                best_match_diff = match_goodness
+                best_match_ingrds = [ingrd_real]
+                best_match_list = [ingrd_list_real]
+            elif (match_goodness == best_match_diff) and (match_goodness < 10000):
+                best_match_ingrds.append(ingrd_real)
+                best_match_list.append(ingrd_list_real)
+            else:
+                pass
+    
+    """
+    filtered_match_ingrds = list()
+    filtered_match_list = list()
+    if (len(best_match_ingrds) > 1):
+        print best_match_list
+        for i in range(len(best_match_list)):
+            accessory_words = list()
+            print best_match_list[i]
+            for word in best_match_list[i]:
+                print match_list
+                if word in match_list:
+                    continue
+                else:
+                    accessory_words.append(word)
+            
+            acc_match_list = word_compare(ingrd_list_rec, accessory_words, 3)
+            if acc_match_list != None:
+                filtered_match_ingrds.append(best_match_ingrds[i])
+                filtered_match_list.append(best_match_list[i])
+    """
+
+    #print ingrd_rec
+    #print best_match_ingrds
+    #print best_match_list
+    #print best_match_diff
+    #print
+    #return best_match_ingrd
+
+    if best_match_ingrds == []:
+        return None, None, None
+    else:
+        return best_match_ingrds, best_match_list, best_match_diff
+
+
 
 
 pp = pprint.PrettyPrinter(indent=4)
@@ -398,11 +610,78 @@ pp = pprint.PrettyPrinter(indent=4)
 with open("recipes.json", "rb") as jfile:
     j = json.load(jfile)
 
-
-ingrd = dict()
+ingrd_dict = dict()
 for key, val in j.iteritems():
-    ingrd[key] = val['ingredients']
+    ingrd_dict[key] = val['ingredients']
 
-pp.pprint(ingrd)
+
+
+cleaned_recipe = dict()
+
+size = len(ingrd_dict.keys())
+i = 0
+for key, val in ingrd_dict.iteritems():
+    
+    print "%d out of %d\n" % (i, size)
+    ingredients_match = dict()
+    for ingrd in val:
+
+        
+        match_ingrds = list()
+        match_list = list
+        match_goodness = 10000
+        category = list()
+
+        cat_best_match_ingrds, cat_best_match_list, cat_best_match_goodness = best_match(ingrd, master_ingrd_dict['spices'])
+        #print ingrd
+        #print cat_best_match_ingrds, cat_best_match_list, cat_best_match_goodness
+        
+        for cat, cat_list in master_ingrd_dict.iteritems():        
+        # check spices
+            cat_best_match_ingrds, cat_best_match_list, cat_best_match_goodness = best_match(ingrd, cat_list)
+
+            if cat_best_match_ingrds != None:
+                if cat_best_match_goodness < match_goodness:
+                    match_ingrd = [cat_best_match_ingrds]
+                    match_list = cat_best_match_list
+                    match_goodness = cat_best_match_goodness
+                    category = [cat]
+                elif (cat_best_match_goodness == match_goodness) and (cat_best_match_goodness < 10000):
+                    match_ingrd.append(cat_best_match_ingrds)
+                    match_list.append(cat_best_match_list)
+                    category.append(cat)
+                else:
+                    pass
+
+        #print ingrd
+        #print match_ingrds
+        #print match_list
+        #print category
+       
+        ingredients_match[ingrd] = {    'ingrd_real': match_ingrd,
+                                        'category'  : category      }
+
+    cleaned_recipe[key] = ingredients_match
+
+    i+=1
+
+try:
+    with open('ingrdients_extract.json', 'wb') as jwrite:
+        json.dump(cleaned_recipe, jwrite, sort_keys=True, indent=4) 
+except:
+    pp.pprint(cleaned_recipe)
+        #check poultry
+        #for s in spices:
+        #    s_list = s.split()
+        #    word_compare(ingrd_split, s_list)
+
+
+            
+
+
+
+
+
+#pp.pprint(ingrd_dict)
 
 
