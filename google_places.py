@@ -9,7 +9,7 @@ google_places = GooglePlaces(YOUR_API_KEY)
 
 # You may prefer to use the text_search API, instead.
 query_result = google_places.text_search(
-        location='Marlboro, New Jersey', query='Bank of America in Marlboro New Jersey',
+        query='Six Flags',
         radius=20000)
 # If types param contains only 1 item the request to Google Places API
 # will be send as type param to fullfil:
