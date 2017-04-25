@@ -175,8 +175,9 @@ def calculate_with_unit(str_list):
             pass
 
     amount = amt_by_unit * unit
-    return amount, unit_idx
-
+    #return amount, unit_idx
+    return amount # number of grams
+#"""
 
 units = unit_to_gram.keys()
 #print units
@@ -203,11 +204,13 @@ for key, val in ingrd.iteritems():
         if len(paren_split) > 1:
             paren_str = paren_split[1].split()
             #pprint(paren_str)
-            
-            amount, unit_idx = calculate_with_unit(paren_str)
+
+            #amount, unit_idx = calculate_with_unit(paren_str)
+            amount = calculate_with_unit(paren_str)
 
             if amount == 0.0:
-                amount, unit_idx = calculate_with_unit(paren_split[0].split())
+                #amount, unit_idx = calculate_with_unit(paren_split[0].split())
+                amount = calculate_with_unit(paren_str)
 
             #pprint(ingr)
             #pprint(paren_str)
@@ -218,8 +221,9 @@ for key, val in ingrd.iteritems():
             #and break up string into words
             single_str = paren_split[0].split(',')[0].split()
             pprint(single_str)
-            amount, unit_idx = calculate_with_unit(single_str)
-            
+            #amount, unit_idx = calculate_with_unit(single_str)
+            amount = calculate_with_unit(single_str)
+
         if amount == 0:
             amount = unit_to_gram['cup']
 
@@ -227,3 +231,4 @@ for key, val in ingrd.iteritems():
         print amount
 
     #pprint(ingrd)
+"""
