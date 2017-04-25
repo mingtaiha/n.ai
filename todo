@@ -1,0 +1,4 @@
+1 greedy algo: given recipe, minimize #stores visited, output stores
+2 define user profiles
+3 build recommendation model (algorithm + inputs)
+4 define web interface (above services on endpoints)
