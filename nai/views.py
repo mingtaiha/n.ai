@@ -8,7 +8,9 @@ from werkzeug import secure_filename
 from models import *
 from collections import defaultdict
 from datetime import timedelta
-import os, smtplib, json, datetime, requests, pprint, csv, random
+import os, smtplib, json, datetime, requests, pprint, csv, random, itertools
+
+from test_get_food import calculate_with_unit
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -65,39 +67,112 @@ def get_food_from_ingredient_str(foods, ingredient_str):
     return None, None
 
 
+def get_grams(ingredient_str):
+    amount = 0
+    paren_split = ingredient_str.split('(')
+    if len(paren_split) > 1:
+        paren_str = paren_split[1].split()
+        amount = calculate_with_unit(paren_str)
+        if amount == 0.0:
+            amount = calculate_with_unit(paren_str)
+    else:
+        single_str = paren_split[0].split(',')[0].split()
+        amount = calculate_with_unit(single_str)
+        if amount == 0.0:
+            amount = 236.5 #cup
+    return amount
+
+
+def get_string_match_score(str1, str2):
+    score = 0
+    spl1 = str1.split(" ")
+    spl2 = str2.split(" ")
+    for x in spl1:
+        for y in spl2:
+            if x.strip().lower() == y.strip().lower():
+                score += 1
+    return score
+
+
+def get_best_match_food(food_str, foods, food_names):
+    food_match_scores = map(lambda name: get_string_match_score(food_str, name), food_names)
+    max_index = food_match_scores.index(max(food_match_scores))
+    best_match_name = food_names[max_index]
+    #print type(best_match_name), "!!!!", best_match_name
+    for food in foods:
+        if food.name == best_match_name:
+            return food
+    #food = Food.query.filter_by(name=best_match_name).first()
+    #print "food name is", food.name
+    return None
+
+
+def get_min_length_description(some_list):
+    min_len = len(some_list[0].split(" "))
+    min_str = some_list[0]
+    for i in range(len(some_list)):
+        curr_len = len(some_list[i].split(" "))
+        if curr_len < min_len:
+            min_len = curr_len
+            min_str = some_list[i]
+    return min_str
+
+
 @app.route('/genrecipes', methods=['GET'])
 def genrecipes():
     foods = Food.query.all()
+    food_names = map(lambda food: food.name, foods)
     with open('recipes.json', 'r') as recipes_file:
-        recipes = json.load(recipes_file)
-        for key, val in recipes.iteritems():
-            recipe = Recipe(name=key, instructions=condense_str(val["instructions"]),
+        with open('ingredients_extract.json', 'r') as ingredients_file:
+            recipes = json.load(recipes_file)
+            ingredients = json.load(ingredients_file)
+
+            for key, val in recipes.iteritems():
+                # build and add recipe
+                recipe = Recipe(name=key, instructions=condense_str(val["instructions"]),
                         cook_time=get_delta(val["cook_time"]), prep_time=get_delta(val["prep_time"]),
                         dairy=int(val["recipe_index"][0]), starch=int(val["recipe_index"][1]),
                         veggies=int(val["recipe_index"][2]), protein=int(val["recipe_index"][3]),
-                        cuisine=int(val["recipe_index"][4], ingredients=condense_str(val["ingredients"])))
-            db.session.add(recipe)
-            db.session.commit()
-            # add foodrecipemappings from val["ingredients"]
-            for ingredient_str in val["ingredients"]:
-                food, grams = get_food_from_ingredient_str(foods, ingredient_str)
-                if food is not None:
+                        cuisine=int(val["recipe_index"][4]), ingredients=condense_str(val["ingredients"]))
+                db.session.add(recipe)
+                db.session.commit()
+
+                # parse and add all recipe-food ingredient relationships
+                #if not hasattr(ingredients, key):
+                #    continue
+                ingr_dict = ingredients[key]
+                counter = 0
+                for ingredient_str in val["ingredients"]:
+                    grams = get_grams(ingredient_str)
+                    if type(grams) is tuple:
+                        #print "========================================="
+                        #print "this is a tuple"
+                        #print "========================================="
+                        grams = grams[0]
+                    real_ingredient_lists = ingr_dict[ingredient_str]["ingrd_real"]
+                    real_ingredients = list(itertools.chain.from_iterable(real_ingredient_lists))
+                    min_str = get_min_length_description(real_ingredients)
+                    food = get_best_match_food(min_str, foods, food_names)
+                    #if food is None: continue
                     mapping = FoodRecipeMap(grams=grams, food_id=food.id, recipe_id=recipe.id)
                     db.session.add(mapping)
-                    db.session.commit()
+                    #counter += 1
+                    #if counter % 50 == 0:
+                    #    db.session.commit()
+                db.session.commit()
+
     return "recipes generated"
 
 
 @app.route('/genfoods', methods=['GET'])
 def genfoods():
-    """with open('ingredients.csv', 'rb') as ingredients_file:
+    with open('ingredients.csv', 'rb') as ingredients_file:
         ingredients = csv.DictReader(ingredients_file)
         for row in ingredients:
             food = Food(name=row['name'], proteins=row['protein'],
                 fats=row['fat'], carbs=row['carb'], calories=row['cal'])
             db.session.add(food)
         db.session.commit()
-    """
     return "foods generated"
 
 

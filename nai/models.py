@@ -38,8 +38,8 @@ class Recipe(db.Model):
     name = db.Column(db.String(128), nullable=False)
     ingredients = db.Column(db.String(16000), nullable=True)
     instructions = db.Column(db.String(16000), nullable=True)
-    cook_time = db.Column(db.DateTime, nullable=True)
-    prep_time = db.Column(db.DateTime, nullable=True)
+    cook_time = db.Column(db.Interval(), nullable=True)
+    prep_time = db.Column(db.Interval(), nullable=True)
     dairy = db.Column(db.Integer, nullable=True)  #dairy
     starch = db.Column(db.Integer, nullable=True)  #starch
     veggies = db.Column(db.Integer, nullable=True)  #veggies
