@@ -177,7 +177,7 @@ def calculate_with_unit(str_list):
     amount = amt_by_unit * unit
     #return amount, unit_idx
     return amount # number of grams
-#"""
+"""
 
 units = unit_to_gram.keys()
 #print units

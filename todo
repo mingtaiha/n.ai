@@ -1,4 +1,8 @@
-1 greedy algo: given recipe, minimize #stores visited, output stores
-2 define user profiles
-3 build recommendation model (algorithm + inputs)
-4 define web interface (above services on endpoints)
+done
+1 get recipe and ingredient generation working for db test data
+2 greedy algo: given recipe, minimize #stores visited, output stores
+3 define user profiles
+
+todo
+4 build recommendation model (algorithm + inputs)
+5 define web interface (above services on endpoints)

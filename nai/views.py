@@ -116,10 +116,55 @@ def get_min_length_description(some_list):
             min_len = curr_len
             min_str = some_list[i]
     return min_str
+"""
+i = 1
+foods = Food.query.all()
+food_names = map(lambda food: food.name, foods)
+with open('recipes.json', 'r') as recipes_file:
+    with open('ingredients_extract.json', 'r') as ingredients_file:
+        recipes = json.load(recipes_file)
+        ingredients = json.load(ingredients_file)
 
+        for key, val in recipes.iteritems():
+            # build and add recipe
+            recipe = Recipe(name=key, instructions=condense_str(val["instructions"]),
+                    cook_time=get_delta(val["cook_time"]), prep_time=get_delta(val["prep_time"]),
+                    dairy=int(val["recipe_index"][0]), starch=int(val["recipe_index"][1]),
+                    veggies=int(val["recipe_index"][2]), protein=int(val["recipe_index"][3]),
+                    cuisine=int(val["recipe_index"][4]), ingredients=condense_str(val["ingredients"]))
+            db.session.add(recipe)
+            db.session.commit()
+
+            # parse and add all recipe-food ingredient relationships
+            #if not hasattr(ingredients, key):
+            #    continue
+            ingr_dict = ingredients[key]
+            counter = 0
+            for ingredient_str in val["ingredients"]:
+                grams = get_grams(ingredient_str)
+                if type(grams) is tuple:
+                    #print "========================================="
+                    #print "this is a tuple"
+                    #print "========================================="
+                    grams = grams[0]
+                real_ingredient_lists = ingr_dict[ingredient_str]["ingrd_real"]
+                real_ingredients = list(itertools.chain.from_iterable(real_ingredient_lists))
+                min_str = get_min_length_description(real_ingredients)
+                food = get_best_match_food(min_str, foods, food_names)
+                #if food is None: continue
+                mapping = FoodRecipeMap(grams=grams, food_id=food.id, recipe_id=recipe.id)
+                db.session.add(mapping)
+                #counter += 1
+                #if counter % 50 == 0:
+                #    db.session.commit()
+            db.session.commit()
+            print "added recipe", i, "and its ingredients :)"
+            i += 1
+"""
 
 @app.route('/genrecipes', methods=['GET'])
 def genrecipes():
+    i = 1
     foods = Food.query.all()
     food_names = map(lambda food: food.name, foods)
     with open('recipes.json', 'r') as recipes_file:
@@ -136,18 +181,13 @@ def genrecipes():
                         cuisine=int(val["recipe_index"][4]), ingredients=condense_str(val["ingredients"]))
                 db.session.add(recipe)
                 db.session.commit()
-
                 # parse and add all recipe-food ingredient relationships
-                #if not hasattr(ingredients, key):
-                #    continue
+                #if not hasattr(ingredients, key): continue
                 ingr_dict = ingredients[key]
                 counter = 0
                 for ingredient_str in val["ingredients"]:
                     grams = get_grams(ingredient_str)
                     if type(grams) is tuple:
-                        #print "========================================="
-                        #print "this is a tuple"
-                        #print "========================================="
                         grams = grams[0]
                     real_ingredient_lists = ingr_dict[ingredient_str]["ingrd_real"]
                     real_ingredients = list(itertools.chain.from_iterable(real_ingredient_lists))
@@ -156,12 +196,58 @@ def genrecipes():
                     #if food is None: continue
                     mapping = FoodRecipeMap(grams=grams, food_id=food.id, recipe_id=recipe.id)
                     db.session.add(mapping)
-                    #counter += 1
-                    #if counter % 50 == 0:
-                    #    db.session.commit()
                 db.session.commit()
+                print "added recipe", i, "and its ingredients :)"
+                i += 1
 
     return "recipes generated"
+
+# Uncomment this to generate recipes/ingredient mappings. 1025 of them
+# genrecipes()
+
+@app.route('/getstores/<recipe_id>', methods=['GET'])
+def getstores(recipe_id):
+    foods = []
+    stores = []
+    recipe = Recipe.query.filter_by(id=recipe_id).first()
+    mappings = FoodRecipeMap.query.filter_by(recipe_id=recipe_id).all()
+    for mapping in mappings:
+        foods.append(Food.query.filter_by(id=mapping.food_id).first())
+    for i in range(len(foods)):
+        food = foods[i]
+        mapping = mappings[i]
+        store_map = None
+        store_food_maps = list(
+                filter(
+                    lambda item: item.quantity > int(mapping.grams/100.0),
+                    StoreFoodMap.query.filter_by(food_id=food.id).all()
+                ))
+        store_ids = map(lambda store: store.id, [x for x in stores if x is not None])
+        pref_store_food_maps = list(
+                filter(
+                    lambda store_food_mapping: store_food_mapping.store_id in store_ids,
+                    store_food_maps
+                ))
+        if not store_food_maps:
+            store_map = None
+        elif not pref_store_food_maps: # empty
+            store_map = store_food_maps[0] # greedy
+        else:
+            store_map = pref_store_food_maps[0]
+
+        if store_map is not None:
+            stores.append(Store.query.filter_by(id=store_map.store_id).first())
+        else:
+            stores.append(None)
+
+    print "recipe for", recipe.name, ":"
+    for i in range(len(stores)):
+        if stores[i] is not None:
+            print "go to", stores[i].name, "for", mappings[i].grams, "grams of", foods[i].name
+        else:
+            print "no store found that has", mappings[i].grams, "grams of", foods[i].name
+
+    return "success! check server output"
 
 
 @app.route('/genfoods', methods=['GET'])
@@ -228,6 +314,19 @@ def genstores():
     db.session.commit()
 
     return "stores generated"
+
+
+@app.route('/genpeople', methods=['GET'])
+def genpeople():
+    person = Person(name="Sakib", email="sakib.jalal@gmail.com",
+                    address="3 Pace Drive, Edison, NJ 08820",
+                    weight_curr=180, weight_goal=200, activity=1.4, height=68)
+    db.session.add(person)
+    db.session.commit()
+    foods = Food.query.all()
+    #todo: insert into personfoodmap. also, personrecipemap will be history. enable 'choosing'
+    #basically, build algorithm
+    return "people generated"
 
 
 @app.route('/delstores', methods=['GET'])
