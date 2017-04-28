@@ -17,18 +17,6 @@ BOT_SESSION_ID = "route_planner_bot"
 #instantiate Slack client
 slack_client = SlackClient(os.environ.get('ROUTE_PLANNER_TOKEN'))
 
-#### Commands which our bot is designed to handle
-# What is the closest X nearby
-         # From current location, find X with min distance       
-# How do I get from X to Y
-        # Find X, Find Y, get from X to Y
-# Starting from X, find me the fastest route to X1, X2, ...
-        # Return or not return to X?
-
-
-def handle_plan_route(response):
-    pass
-
 
 def handle_command(command, channel):
     """
