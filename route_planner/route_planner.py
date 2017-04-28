@@ -1,8 +1,8 @@
 import os
 import time
-import utils
 from slackclient import SlackClient
 import google_places as gp
+import google_maps as gm
 import api_ai
 import pprint
 
@@ -26,6 +26,10 @@ slack_client = SlackClient(os.environ.get('ROUTE_PLANNER_TOKEN'))
         # Return or not return to X?
 
 
+def handle_plan_route(response):
+    pass
+
+
 def handle_command(command, channel):
     """
         Receives commands directed at the bot and determines if they
@@ -36,20 +40,47 @@ def handle_command(command, channel):
     #if command.startswith(CLOSEST_ROUTE):   
     
     apiai_query = command
-    print command
+    #print command
     apiai_resp = api_ai.query_apiai(apiai_query, BOT_SESSION_ID) 
     pprint.pprint(apiai_resp)
     
     response = unicode(apiai_resp['result']['fulfillment']['speech'])
-    slack_client.api_call("chat.postMessage", channel=channel,
-                        text=response, as_user=True)
 
-    print apiai_resp['result']['actionIncomplete'] == "False"
-    if apiai_resp['result']['actionIncomplete'] == False:
-        print "I get here\n"
-        data = api_ai.parse_result(apiai_resp)
-        pprint.pprint(data)
+    if apiai_resp['result']['metadata']['intentName'] == 'route_plan':
+        if apiai_resp['result']['actionIncomplete'] == False:
+            data = api_ai.parse_result(apiai_resp)
+            pprint.pprint(data)
+            slack_client.api_call("chat.postMessage", channel=channel, text="activating gmaps", as_user=True)
+            #response = "Starting address: {0}\n Ending address: {1}\n".format(data['start_addr'], data['end_addr'])
+            start_addr = data['start_addr']
+            end_addr = data['end_addr']
+            inter_addrs = list()
+            if 'inter_places' in data:
+                for stop in data['inter_places']:
+                    inter_result = gp.get_gplaces_results(stop['place'], stop['city'], stop['state'])
+                    if inter_result != None:
+                        inter_addrs.append(inter_result['address'])
+                        print inter_result['address']
+                    else:
+                        print "There is no {0} in {1}, {2}\n".format(stop['place'], stop['city'], stop['state'])
+            route, cost = gm.get_path(start_addr, inter_addrs, end_addr)
+                    #response = response + "Stop: {0}, {1}, {2}\n".format(stop['place'], stop['city'], stop['state'])
 
+    elif apiai_resp['result']['metadata']['intentName'] == 'find_place':
+        if apiai_resp['result']['actionIncomplete'] == False:
+            data = api_ai.parse_result(apiai_resp)
+            #pprint.pprint(data)
+            gplaces_result = gp.get_gplaces_results(data['place'], data['city'], data['state'])
+            if gplaces_result == None:
+                response = "There's no {0} in {1},{2}".forma(data['place'], data['city'], data['state'])
+            else:
+                pprint.pprint(gplaces_result)
+                response = "Address: {0}".format(gplaces_result['address'])
+
+    else:
+        print "Intent not implemented\n"
+
+    slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
 
 def parse_slack_output(slack_rtm_output):
     """
