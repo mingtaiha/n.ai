@@ -4,7 +4,7 @@ import sys
 import utils
 
 YOUR_API_KEY = "AIzaSyCQENSbRFfd9_lGuqoXf2icRgtSvED-WHI"
-RADIUS = 20000 # in meters
+RADIUS = 10000 # in meters
 
 google_places = GooglePlaces(YOUR_API_KEY)
 
@@ -34,6 +34,7 @@ def get_gplaces_results(place, city, state):
                 place_d['address'] = place.formatted_address
                 place_d['name'] = place.name
                 places_in_city.append(place_d)
+                break
 
         if len(places_in_city) == 0:
             return None     #No such places in city but are within RADIUS km

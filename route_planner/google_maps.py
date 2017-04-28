@@ -38,17 +38,20 @@ def get_distance_matrix(start, places, end, depart_delay):
     # Create list of lat/lng for start location and stores
     start_list = list()
     gcode_start = gmaps.geocode(start)
-    #pprint(gcode_start)
+#    pprint(gcode_start)
     loc_list = list()
     loc_list.append(gcode_start[0]['geometry']['location'])
 
+    print start, places, end
     if len(places) > 0:
         for place in places:
+            pprint(place)
             gcode_place = gmaps.geocode(place)
-            #pprint(gcode_place)
+#            pprint(gcode_place)
             loc_list.append(gcode_place[0]['geometry']['location'])
 
     gcode_end = gmaps.geocode(end)
+    loc_list.append(gcode_end[0]['geometry']['location'])
 
     #pprint(start_list)
 
@@ -71,7 +74,7 @@ def get_distance_matrix(start, places, end, depart_delay):
                             d_mat['rows'][src]['elements'][dst]['distance']['value'] / 1000.))
         distance_matrix.append(tmp_list)
 
-    pprint(distance_matrix)
+#    pprint(distance_matrix)
     return distance_matrix
 
 
@@ -93,7 +96,7 @@ def get_path(start, places, end, time_delay=0, dist_mat=None):
     metric = 0      # 0 - Time, 1 - Distance
     src = 0 
 
-    while len(path) < (num_locations):
+    while len(path) < (num_locations - 1):
         #pprint(path)
         #print "Starting at {0}".format(src)
         for dst in range(len(dist_mat) - 1):
@@ -104,6 +107,7 @@ def get_path(start, places, end, time_delay=0, dist_mat=None):
             else:
                 pass
                 #print "Already looked at {0}".format(dst)
+        src = next_loc
         path.append(next_loc)
         cost.append(min_dist)
         next_loc = 0
@@ -112,8 +116,8 @@ def get_path(start, places, end, time_delay=0, dist_mat=None):
     path.append(len(dist_mat) - 1)
     cost.append(dist_mat[path[-2]][path[-1]][metric])
     
-    pprint(path)
-    pprint(cost)
+#    pprint(path)
+#    pprint(cost)
     return path, cost
 
 

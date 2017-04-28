@@ -40,7 +40,7 @@ def handle_command(command, channel):
     #if command.startswith(CLOSEST_ROUTE):   
     
     apiai_query = command
-    #print command
+    print command
     apiai_resp = api_ai.query_apiai(apiai_query, BOT_SESSION_ID) 
     pprint.pprint(apiai_resp)
     
@@ -50,7 +50,8 @@ def handle_command(command, channel):
         if apiai_resp['result']['actionIncomplete'] == False:
             data = api_ai.parse_result(apiai_resp)
             pprint.pprint(data)
-            slack_client.api_call("chat.postMessage", channel=channel, text="activating gmaps", as_user=True)
+            #slack_client.api_call("chat.postMessage", channel=channel, text="activating gmaps", as_user=True)
+            print "activating google maps\n"
             #response = "Starting address: {0}\n Ending address: {1}\n".format(data['start_addr'], data['end_addr'])
             start_addr = data['start_addr']
             end_addr = data['end_addr']
@@ -61,10 +62,26 @@ def handle_command(command, channel):
                     if inter_result != None:
                         inter_addrs.append(inter_result['address'])
                         print inter_result['address']
+                        inter_response = "The address of {0} in {1}, {2} is {3}\n".format(stop['place'], stop['city'], stop['state'], inter_result['address'])
+                        slack_client.api_call("chat.postMessage", channel=channel, text=inter_response, as_user=True)
                     else:
                         print "There is no {0} in {1}, {2}\n".format(stop['place'], stop['city'], stop['state'])
+                        
             route, cost = gm.get_path(start_addr, inter_addrs, end_addr)
-                    #response = response + "Stop: {0}, {1}, {2}\n".format(stop['place'], stop['city'], stop['state'])
+
+            addr_path_list = [start_addr]
+            addr_path_list.extend(inter_addrs)
+            addr_path_list.append(end_addr)
+
+            store_route = list()
+            for i in range(len(route)):
+                store_route.append(addr_path_list[route[i]])
+
+            response = "Here's a way to get to all the stores:\n"
+            for i in range(len(cost)):
+                response = response + "Go from {0} to {1}. Takes about {2} minutes\n".format(store_route[i], store_route[i+1], round(cost[i]))
+
+
 
     elif apiai_resp['result']['metadata']['intentName'] == 'find_place':
         if apiai_resp['result']['actionIncomplete'] == False:
