@@ -65,7 +65,7 @@ def handle_command(command, channel):
             for i in range(len(route)):
                 store_route.append(addr_path_list[route[i]])
 
-            response = "Here's a way to get to all the stores:\n"
+            response = "Here's a way to get to all places:\n"
             for i in range(len(cost)):
                 response = response + "Go from {0} to {1}. Takes about {2} minutes\n".format(store_route[i], store_route[i+1], round(cost[i]))
 

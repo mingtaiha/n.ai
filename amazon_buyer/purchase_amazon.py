@@ -79,7 +79,7 @@ def buy_items(item_list, quantity_list=None, category_list=None):
     if category_list == None:
         category_list = ['All' for item in item_list]
 
-    items_to_buy = dict()
+    item_and_quantity = dict()
     item_names = dict()
     item_prices = dict()
 
@@ -89,22 +89,25 @@ def buy_items(item_list, quantity_list=None, category_list=None):
         #print item_list[i]
         result = search_item_and_price(amazon, item_list[i], category_list[i])
         if result != None:
-            items_to_buy[result['aws_id']] = quantity_list[i]
+            item_and_quantity[result['aws_id']] = quantity_list[i]
+            #print type(quantity_list[i])
 
     #Create remote cart of items to buy
-    cart = amazon.cart_create(items_to_buy)
+    cart = amazon.cart_create(item_and_quantity)
 
     #Get cart information. ID and HMAC is used to track and reference the created
     #cart. Purchase URL is what the user uses to purchase the desired items
     cart_id = cart.Cart.CartId
     cart_hmac = cart.Cart.HMAC
-    purchase_url = cart.Cart.PurchaseURL
+    purchase_url = cart.Cart.PurchaseURL.text
+    #print type(purchase_url)
 
     #Get contents of cart
     cart_get = amazon.cart_get(cart_id, cart_hmac)
     subtotal = cart_get.Cart.SubTotal.getchildren()[2].text
     cart_contents = cart_get.Cart.CartItems.getchildren()[1:]
-    #pprint.pprint(items_to_buy)
+    #print type(subtotal)
+    #pprint.pprint(item_and_quantity)
 
     #Get the prices and names of items in the cart. Since adding items to the cart
     #does not (seem to) let the programmer decide which offer listing to add, need
@@ -114,23 +117,32 @@ def buy_items(item_list, quantity_list=None, category_list=None):
     for cart_item in cart_contents:
         item_info = cart_item.getchildren()
         aws_id = item_info[1].text
-        item_names[aws_id] = item_info[4].text
-        item_prices[aws_id] = item_info[7].getchildren()[-1]
+        item_prices[aws_id] = item_info[7].getchildren()[-1].text
 
-    #pprint.pprint(items_to_buy)
+        if type(item_info[4].text) == unicode:
+            item_names[aws_id] = item_info[4].text.encode('ascii', 'ignore')
+        else: 
+            # Assuming it is a string type
+            item_names[aws_id] = item_info[4].text
+
+        #print item_names[aws_id]
+        #print type(item_names[aws_id])
+        #print type(item_prices[aws_id])
+
+    #pprint.pprint(item_and_quantity)
     #pprint.pprint(item_names)
     #pprint.pprint(item_prices)
     #pprint.pprint(subtotal)
-    #print purchase_url
+    #print type(purchase_url)
 
-    return items_to_buy, item_names, item_prices, subtotal, purchase_url
+    return item_and_quantity, item_names, item_prices, subtotal, purchase_url
 
 
 
 if __name__ == "__main__":
 
     amazon_url = buy_items(['eggs', 'milk', 'bacon'])
-    amazon_url = buy_items(['black pepper', 'sugar', 'all-purpose flour'])
+    #amazon_url = buy_items(['black pepper', 'sugar', 'all-purpose flour'])
 
     """
     if len(sys.argv) == 2:
