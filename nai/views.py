@@ -1,5 +1,5 @@
 #!venv/bin/python
-from flask import redirect, url_for, render_template, flash, request, send_from_directory, Response, get_flashed_messages
+from flask import redirect, url_for, render_template, request
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Message
@@ -13,7 +13,7 @@ import os, smtplib, json, datetime, requests, pprint, csv, random, itertools
 from test_get_food import calculate_with_unit
 
 pp = pprint.PrettyPrinter(indent=4)
-
+SUGGESTION_NUM = 3
 
 
 @app.route('/')
@@ -315,35 +315,120 @@ def genstores():
 
     return "stores generated"
 
+#todo: insert into personfoodmap. also, personrecipemap will be history. enable 'choosing'
+#basically, build algorithm
 
-@app.route('/genpeople', methods=['GET'])
-def genpeople():
+@app.route('/genperson', methods=['GET'])
+def genperson():
     person = Person(name="Sakib", email="sakib.jalal@gmail.com",
                     address="3 Pace Drive, Edison, NJ 08820",
                     weight_curr=180, weight_goal=200, activity=1.4, height=68)
     db.session.add(person)
     db.session.commit()
     foods = Food.query.all()
-    #todo: insert into personfoodmap. also, personrecipemap will be history. enable 'choosing'
-    #basically, build algorithm
-    return "people generated"
+
+    person_food_mappings = \
+        map(lambda food: PersonFoodMap(person_id=person.id, food_id=food.id, pref_score=0), foods)
+
+    for x in person_food_mappings:
+        db.session.add(x)
+        db.session.commit()
+
+    return "person generated"
 
 
-@app.route('/delstores', methods=['GET'])
-def delstores():
-    for mapping in StoreFoodMap.query.all():
-        db.session.delete(mapping)
-    for store in Store.query.all():
-        db.session.delete(store)
+def get_foods_in_recipe(recipe, foods):
+    foodrecipemaps = FoodRecipeMap.query.filter_by(recipe_id=recipe.id).all()
+    component_foods = []
+    for mapping in foodrecipemaps:
+        for food in foods:
+            if mapping.food_id == food.id:
+                component_foods.append(food)
+    return component_foods
+
+
+def sum_food_scores(person, food_list):
+    recipe_score = 0
+    food_list_ids = map(lambda food: food.id, food_list)
+    personal_foods_maps = PersonFoodMap.query.filter_by(person_id=person.id).all()
+    relevant_foods_maps = filter(lambda food_map: food_map.id in food_list_ids, personal_foods_maps)
+    for food_map in relevant_foods_maps:
+        recipe_score += food_map.pref_score
+    return recipe_score
+
+
+# Generate top 3 recipes for a particular person
+@app.route('/suggestions/<person_id>', methods=['GET'])
+def suggestions(person_id):
+    master_list = []
+    person = Person.query.filter_by(id=person_id).first()
+    if not person: return "bad person, fool"
+    recipes = Recipe.query.all()
+    foods = Food.query.all()
+    # argmax top 3 recipes by pref score
+    # this is deterministic! for variety, pick top quarter
+    #    of recipe_score range, random/distribution choice
+    for recipe in recipes:
+        ingredients = get_foods_in_recipe(recipe, foods)
+        recipe_score = sum_food_scores(person, ingredients)
+        print recipe_score, str(recipe.name)
+        master_list.append([recipe_score, recipe])
+
+    top_five_percent = sorted(master_list, reverse=True)[:len(recipes)/20]
+    random.shuffle(top_five_percent)
+    suggestions = [x[1] for x in top_five_percent[:SUGGESTION_NUM]]
+    for recipe in suggestions: print recipe.name
+
+    return "recipes suggested"
+
+
+# Based on selection of recipe, modify food.pref_scores for person
+@app.route('/selection/<person_id>/<recipe_id>', methods=['GET'])
+def selection(person_id, recipe_id):
+    person = Person.query.filter_by(id=person_id).first()
+    recipe = Recipe.query.filter_by(id=recipe_id).first()
+    if not person or not recipe: return "bad args, fool"
+    foods = Food.query.all()
+    # mod all pref scores accordingly, +1 but cap at 10, upon 10 renormalize
+    relevant_foods = get_foods_in_recipe(recipe, foods)
+    person_food_maps = map(lambda food: \
+        PersonFoodMap.query.filter_by(person_id=person.id, food_id=food.id).first(), relevant_foods)
+    for mapping in person_food_maps:
+        mapping.pref_score += 1
+        if mapping.pref_score > 10:
+            normalize()
     db.session.commit()
-    return "stores deleted"
+    return "preferences modified"
 
 
-#@app.errorhandler(404)
-#def page_not_found(e):
-#    return render_template('404.html'), 404
+# Normalize food preference scores if they get too large!
+@app.route('/normalize/<person_id>', methods=['GET'])
+def normalize(person_id):
+    foods = Food.query.all()
+    sigma = 0.0
+    # renormalize to sum all pref_scores to 10
+    person_food_maps = PersonFoodMap.query.filter_by(person_id=person_id).all()
+    for mapping in person_food_maps: sigma += mapping.pref_score
+    for mapping in person_food_maps: mapping.pref_score /= (sigma/10)
+    db.session.commit()
+    return "normalized"
 
 
-#@app.errorhandler(Exception)
-#def unhandled_exception(e):
-#    return render_template('500.html'), 500
+@app.route('/clearscores/<person_id>', methods=['GET'])
+def clearscores(person_id):
+    person_food_maps = PersonFoodMap.query.filter_by(person_id=person_id).all()
+    for mapping in person_food_maps:
+        mapping.pref_score = 0
+    db.session.commit()
+    return "scores for person cleared"
+
+
+@app.route('/loadhistoricalprefs/<person_id>', methods=['GET'])
+def loadhistoricalprefs(person_id):
+    n = request.args.get("n")
+    if not n: n = 10
+    clearscores(person_id)
+    person_recipe_maps = sorted(PersonRecipeMap.query.all(), key=time, reverse=True)[:n]
+    recipes = map(lambda mapping: Recipe.query.filter_by(id=mapping.recipe_id).first(), person_recipe_maps)
+    finale = map(lambda recipe: selection(person_id, recipe.id), recipes)
+    return "pref scores reloaded for", n, "most recent meals"
