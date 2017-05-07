@@ -106,7 +106,7 @@ def parse_slack_output(slack_rtm_output):
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1
     if slack_client.rtm_connect():
-        print "test-bot connected and running!\n"
+        print "route_planner bot connected and running!\n"
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             print command

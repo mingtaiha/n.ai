@@ -1,19 +1,16 @@
 import os
 import time
-import pprint
 from slackclient import SlackClient
-import api_ai
-import purchase_amazon as pa
 
 #from environ variable
-BOT_ID = os.environ.get("AMAZON_BUYER_ID")
+BOT_ID = os.environ.get("NUTRITION_AI_ID")
 
 #constants
 AT_BOT = "<@" + BOT_ID + ">"
-BOT_SESSION_ID = "amazon_buyer_bot"
+EXAMPLE_COMMAND = "do"
 
 #instantiate Slack client
-slack_client = SlackClient(os.environ.get('AMAZON_BUYER_TOKEN'))
+slack_client = SlackClient(os.environ.get('NUTRITION_AI_TOKEN'))
 
 def handle_command(command, channel):
     """
@@ -21,29 +18,10 @@ def handle_command(command, channel):
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    response = "I'm not sure what you mean. Can you please repeat that?\n"
-
-    apiai_query = command
-    print command
-    apiai_resp = api_ai.query_apiai(apiai_query, BOT_SESSION_ID)
-    pprint.pprint(apiai_resp)
-
-    response = unicode(apiai_resp['result']['fulfillment']['speech'])
-    slack_client.api_call("chat.postMessage", channel=channel,
-							text=response, as_user=True)
-
-    if apiai_resp['result']['action'] == 'buy_items':
-        if apiai_resp['result']['actionIncomplete'] == False:
-            items = api_ai.parse_buy_items(apiai_resp)
-            item_and_quantity, item_names, item_prices, subtotal, purchase_url = pa.buy_items(items) 
-            
-            response = ""
-            for item_id in item_names.keys():
-                response = response + "Buying {0} unit of {1}. Costs {2}\n".format(item_and_quantity[item_id], item_names[item_id], item_prices[item_id])
-            response = response + "The total cost comes out to {0}\n".format(subtotal)
-            response = response + "Here's the link to checkout: {0}\n".format(purchase_url)
-
-
+    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
+				"* command with numbers, delimited by spaces"
+    if command.startswith(EXAMPLE_COMMAND):
+		response = "Sure..write some code then I can do that!"
     slack_client.api_call("chat.postMessage", channel=channel,
 							text=response, as_user=True)
 
@@ -67,7 +45,7 @@ def parse_slack_output(slack_rtm_output):
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1
     if slack_client.rtm_connect():
-        print "test-bot connected and running!\n"
+        print "nutrition_ai bot connected and running!\n"
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
