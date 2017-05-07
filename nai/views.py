@@ -14,6 +14,8 @@ from test_get_food import calculate_with_unit
 
 pp = pprint.PrettyPrinter(indent=4)
 SUGGESTION_NUM = 3
+VARIETY_PERCENT = 1
+# require over SUGGESTION_NUM*100/VARIETY_PERCENT recipes
 
 
 @app.route('/')
@@ -337,21 +339,16 @@ def genperson():
     return "person generated"
 
 
-def get_foods_in_recipe(recipe, foods):
-    foodrecipemaps = FoodRecipeMap.query.filter_by(recipe_id=recipe.id).all()
-    component_foods = []
-    for mapping in foodrecipemaps:
-        for food in foods:
-            if mapping.food_id == food.id:
-                component_foods.append(food)
-    return component_foods
+def get_foods_in_recipe(recipe, foods_dict):
+    food_recipe_maps = set(FoodRecipeMap.query.filter_by(recipe_id=recipe.id).all())
+    component_foods = map(lambda mapping: foods_dict[mapping.food_id], food_recipe_maps)
+    return set(component_foods)
 
 
-def sum_food_scores(person, food_list):
+def sum_food_scores(food_list, personal_foods_maps):
     recipe_score = 0
     food_list_ids = map(lambda food: food.id, food_list)
-    personal_foods_maps = PersonFoodMap.query.filter_by(person_id=person.id).all()
-    relevant_foods_maps = filter(lambda food_map: food_map.id in food_list_ids, personal_foods_maps)
+    relevant_foods_maps = filter(lambda food_map: food_map.food_id in food_list_ids, personal_foods_maps)
     for food_map in relevant_foods_maps:
         recipe_score += food_map.pref_score
     return recipe_score
@@ -363,21 +360,19 @@ def suggestions(person_id):
     master_list = []
     person = Person.query.filter_by(id=person_id).first()
     if not person: return "bad person, fool"
+    foods_dict = dict((food.id, food) for food in Food.query.all())
     recipes = Recipe.query.all()
-    foods = Food.query.all()
-    # argmax top 3 recipes by pref score
-    # this is deterministic! for variety, pick top quarter
-    #    of recipe_score range, random/distribution choice
+    personal_foods_maps = PersonFoodMap.query.filter_by(person_id=person.id).all()
+    # for variety, pick random subset from top 5% of recipe_score range
     for recipe in recipes:
-        ingredients = get_foods_in_recipe(recipe, foods)
-        recipe_score = sum_food_scores(person, ingredients)
-        print recipe_score, str(recipe.name)
+        ingredients = get_foods_in_recipe(recipe, foods_dict)
+        recipe_score = sum_food_scores(ingredients, personal_foods_maps)
         master_list.append([recipe_score, recipe])
 
-    top_five_percent = sorted(master_list, reverse=True)[:len(recipes)/20]
-    random.shuffle(top_five_percent)
-    suggestions = [x[1] for x in top_five_percent[:SUGGESTION_NUM]]
-    for recipe in suggestions: print recipe.name
+    top = sorted(master_list, reverse=True)[:len(recipes)/(100/VARIETY_PERCENT)] # top 1% if VP=1
+    random.shuffle(top)
+    suggestions = [x for x in top[:SUGGESTION_NUM]]
+    for score, recipe in suggestions: print score, recipe.id, recipe.name
 
     return "recipes suggested"
 
@@ -388,15 +383,18 @@ def selection(person_id, recipe_id):
     person = Person.query.filter_by(id=person_id).first()
     recipe = Recipe.query.filter_by(id=recipe_id).first()
     if not person or not recipe: return "bad args, fool"
-    foods = Food.query.all()
+    foods_dict = dict((food.id, food) for food in Food.query.all())
     # mod all pref scores accordingly, +1 but cap at 10, upon 10 renormalize
-    relevant_foods = get_foods_in_recipe(recipe, foods)
+    relevant_foods = get_foods_in_recipe(recipe, foods_dict)
     person_food_maps = map(lambda food: \
         PersonFoodMap.query.filter_by(person_id=person.id, food_id=food.id).first(), relevant_foods)
     for mapping in person_food_maps:
         mapping.pref_score += 1
         if mapping.pref_score > 10:
             normalize()
+    meal_record = PersonRecipeMap(recipe_id=recipe_id,
+            person_id=person_id, time=datetime.datetime.now())
+    db.session.add(meal_record)
     db.session.commit()
     return "preferences modified"
 
@@ -409,7 +407,9 @@ def normalize(person_id):
     # renormalize to sum all pref_scores to 10
     person_food_maps = PersonFoodMap.query.filter_by(person_id=person_id).all()
     for mapping in person_food_maps: sigma += mapping.pref_score
-    for mapping in person_food_maps: mapping.pref_score /= (sigma/10)
+    print "sigma", sigma
+    if sigma != 0:
+        for mapping in person_food_maps: mapping.pref_score /= (sigma/10)
     db.session.commit()
     return "normalized"
 
@@ -428,7 +428,7 @@ def loadhistoricalprefs(person_id):
     n = request.args.get("n")
     if not n: n = 10
     clearscores(person_id)
-    person_recipe_maps = sorted(PersonRecipeMap.query.all(), key=time, reverse=True)[:n]
+    person_recipe_maps = sorted(PersonRecipeMap.query.all(), key=lambda mapping: mapping.time, reverse=True)[:n]
     recipes = map(lambda mapping: Recipe.query.filter_by(id=mapping.recipe_id).first(), person_recipe_maps)
     finale = map(lambda recipe: selection(person_id, recipe.id), recipes)
-    return "pref scores reloaded for", n, "most recent meals"
+    return "pref scores reloaded for {0} most recent meals".format(len(recipes))
