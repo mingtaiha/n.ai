@@ -61,7 +61,7 @@ class PersonFoodMap(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     food_id = db.Column(db.Integer, db.ForeignKey("foods.id"), nullable=False)
     person_id = db.Column(db.Integer, db.ForeignKey("persons.id"), nullable=False)
-    pref_score = db.Column(db.Float, default=0, nullable=False) #allergies, [-1, 1]
+    pref_score = db.Column(db.Float, default=0, nullable=False) #allergies, [0, 10]
 
 
 class PersonRecipeMap(db.Model):

@@ -391,7 +391,7 @@ def selection(person_id, recipe_id):
     for mapping in person_food_maps:
         mapping.pref_score += 1
         if mapping.pref_score > 10:
-            normalize()
+            normalize(person_id)
     meal_record = PersonRecipeMap(recipe_id=recipe_id,
             person_id=person_id, time=datetime.datetime.now())
     db.session.add(meal_record)
@@ -409,7 +409,7 @@ def normalize(person_id):
     for mapping in person_food_maps: sigma += mapping.pref_score
     print "sigma", sigma
     if sigma != 0:
-        for mapping in person_food_maps: mapping.pref_score /= (sigma/10)
+        for mapping in person_food_maps: mapping.pref_score /= (sigma/2)
     db.session.commit()
     return "normalized"
 
