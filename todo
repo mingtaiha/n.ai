@@ -2,7 +2,8 @@ done
 1 get recipe and ingredient generation working for db test data
 2 greedy algo: given recipe, minimize #stores visited, output stores
 3 define user profiles
+4 build recommendation model (algorithm + inputs)
+
 
 todo
-4 build recommendation model (algorithm + inputs)
-5 define web interface (above services on endpoints)
+5 define JSON web interface (above services on endpoints)
