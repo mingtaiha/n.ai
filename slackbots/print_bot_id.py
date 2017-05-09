@@ -1,10 +1,11 @@
 import os
+import sys
 from slackclient import SlackClient
 
 
-BOT_NAME = 'route_planner'
+BOT_NAME = sys.argv[1]
 
-slack_client = SlackClient(os.environ.get('ROUTE_PLANNER_TOKEN'))
+slack_client = SlackClient(os.environ.get(BOT_NAME.upper() + '_TOKEN'))
 
 
 if __name__ == "__main__":

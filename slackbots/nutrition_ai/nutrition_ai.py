@@ -1,30 +1,16 @@
 import os
 import time
-import utils
 from slackclient import SlackClient
-import google_places as gp
-import api_ai
-import pprint
 
 #from environ variable
-BOT_ID = os.environ.get("ROUTE_PLANNER_ID")
+BOT_ID = os.environ.get("NUTRITION_AI_ID")
 
 #constants
 AT_BOT = "<@" + BOT_ID + ">"
-BOT_SESSION_ID = "route_planner_bot"
-
+EXAMPLE_COMMAND = "do"
 
 #instantiate Slack client
-slack_client = SlackClient(os.environ.get('ROUTE_PLANNER_TOKEN'))
-
-#### Commands which our bot is designed to handle
-# What is the closest X nearby
-         # From current location, find X with min distance       
-# How do I get from X to Y
-        # Find X, Find Y, get from X to Y
-# Starting from X, find me the fastest route to X1, X2, ...
-        # Return or not return to X?
-
+slack_client = SlackClient(os.environ.get('NUTRITION_AI_TOKEN'))
 
 def handle_command(command, channel):
     """
@@ -32,23 +18,12 @@ def handle_command(command, channel):
         are valid commands. If so, then acts on the commands. If not,
         returns back what it needs for clarification.
     """
-    response = "I'm not sure what you mean. Can you please repeat that?\n"
-    #if command.startswith(CLOSEST_ROUTE):   
-    
-    apiai_query = command
-    print command
-    apiai_resp = api_ai.query_apiai(apiai_query, BOT_SESSION_ID) 
-    pprint.pprint(apiai_resp)
-    
-    response = unicode(apiai_resp['result']['fulfillment']['speech'])
+    response = "Not sure what you mean. Use the *" + EXAMPLE_COMMAND + \
+				"* command with numbers, delimited by spaces"
+    if command.startswith(EXAMPLE_COMMAND):
+		response = "Sure..write some code then I can do that!"
     slack_client.api_call("chat.postMessage", channel=channel,
-                        text=response, as_user=True)
-
-    print apiai_resp['result']['actionIncomplete'] == "False"
-    if apiai_resp['result']['actionIncomplete'] == False:
-        print "I get here\n"
-        data = api_ai.parse_result(apiai_resp)
-        pprint.pprint(data)
+							text=response, as_user=True)
 
 
 def parse_slack_output(slack_rtm_output):
@@ -70,12 +45,12 @@ def parse_slack_output(slack_rtm_output):
 if __name__ == "__main__":
     READ_WEBSOCKET_DELAY = 1
     if slack_client.rtm_connect():
-        print "test-bot connected and running!\n"
+        print "nutrition_ai bot connected and running!\n"
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
-            print command
             if command and channel:
                 handle_command(command, channel)
             time.sleep(READ_WEBSOCKET_DELAY)
+            print None
     else:
         print "Connection failed. Invalid Slack token or Bot ID?\n"

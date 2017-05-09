@@ -14,12 +14,12 @@ test_stores = [ "424 Raritan Ave, Highland Park, NJ 08904",
 
 test_delay = 0
 
-def get_distance_matrix(start, stores, depart_delay):
+def get_distance_matrix(start, places, end, depart_delay):
 
     # :param start: Address as a string.
     #   E.g. '1600 Pennsylvania Ave NW, Washington, DC 20006'
 
-    # :param stores: List of Addresses, each element as a string
+    # :param places: List of Addresses, each element as a string
 
     # :depart_delay: A nonnegative amount of time (in seconds)
     #       and used to query traffic conditions of when user
@@ -38,14 +38,20 @@ def get_distance_matrix(start, stores, depart_delay):
     # Create list of lat/lng for start location and stores
     start_list = list()
     gcode_start = gmaps.geocode(start)
-    #pprint(gcode_start)
+#    pprint(gcode_start)
     loc_list = list()
     loc_list.append(gcode_start[0]['geometry']['location'])
 
-    for store in stores:
-        gcode_store = gmaps.geocode(store)
-        #pprint(gcode_store)
-        loc_list.append(gcode_store[0]['geometry']['location'])
+    print start, places, end
+    if len(places) > 0:
+        for place in places:
+            pprint(place)
+            gcode_place = gmaps.geocode(place)
+#            pprint(gcode_place)
+            loc_list.append(gcode_place[0]['geometry']['location'])
+
+    gcode_end = gmaps.geocode(end)
+    loc_list.append(gcode_end[0]['geometry']['location'])
 
     #pprint(start_list)
 
@@ -68,18 +74,18 @@ def get_distance_matrix(start, stores, depart_delay):
                             d_mat['rows'][src]['elements'][dst]['distance']['value'] / 1000.))
         distance_matrix.append(tmp_list)
 
-    #pprint(distance_matrix)
+#    pprint(distance_matrix)
     return distance_matrix
 
 
-def get_path(start, stores, time_delay=0, dist_mat=None, cycle=0):
+def get_path(start, places, end, time_delay=0, dist_mat=None):
 
     # Returns a cycle which starts at `start` and goes to all stores in the stores list
     # Generates shortest Hamiltonian path greedily using nearest neighbors, then adds path
     # from last store visited to start
     
     if dist_mat == None:
-        dist_mat = get_distance_matrix(start, stores, time_delay)
+        dist_mat = get_distance_matrix(start, places, end, time_delay)
     
     path = [0]
     cost = list()
@@ -87,13 +93,13 @@ def get_path(start, stores, time_delay=0, dist_mat=None, cycle=0):
     num_locations  = len(dist_mat)
     next_loc = 0
     min_dist = 1000000000
-    metric = 0
+    metric = 0      # 0 - Time, 1 - Distance
     src = 0 
 
-    while len(path) < (num_locations):
+    while len(path) < (num_locations - 1):
         #pprint(path)
         #print "Starting at {0}".format(src)
-        for dst in range(len(dist_mat)):
+        for dst in range(len(dist_mat) - 1):
             if dst not in path:
                 if min_dist > dist_mat[src][dst][metric]:
                     next_loc = dst
@@ -101,18 +107,17 @@ def get_path(start, stores, time_delay=0, dist_mat=None, cycle=0):
             else:
                 pass
                 #print "Already looked at {0}".format(dst)
+        src = next_loc
         path.append(next_loc)
         cost.append(min_dist)
         next_loc = 0
         min_dist = 1000000000
 
+    path.append(len(dist_mat) - 1)
+    cost.append(dist_mat[path[-2]][path[-1]][metric])
     
-    if cycle == 1:
-        cost.append(dist_mat[path[-1]][0][metric])
-        path.append(0)
-
-    pprint(path)
-    pprint(cost)
+#    pprint(path)
+#    pprint(cost)
     return path, cost
 
 
