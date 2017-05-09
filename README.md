@@ -4,6 +4,16 @@ This is Sakib and Ming's Nutritional AI App that uses Flask/SQLAlchemy.
 
 ## Overview
 
+This app incorporates a custom-built machine learning algorithm to suggest what recipes a user should eat. The user may specify the number of suggested recipes, the protein and the specific cuisine. Many scripts (stored in /scripts) were used to scrape food/recipe data from online, clean it in various stages (see /outfiles), and structure it to mold to our database models. Routes were built to expose user services on API endpoints:
+
+* Get suggestions for recipes, based on user history and preferences for foods
+* Select a recipe for consumption, which are learned into your preferences
+* Get a minimal set of stores to buy the ingredients for a particular recipe from
+
+These services are designed to feed into each other, and are integrated into the Slackbots which communicate with each other to provide a seamless natural language interface for this service flow.
+
+The design of the bots is loosely coupled, so that it is as easy as possible for anyone to add their own bots which do specific tasks and integrate them into the service flow. The goal is for a master bot to enable bot-service discovery for automatic bot-to-bot communication.
+
 ## Setup
 
 After going into the directory, these are the steps to get the app up and running locally:

@@ -122,8 +122,8 @@ def get_min_length_description(some_list):
 i = 1
 foods = Food.query.all()
 food_names = map(lambda food: food.name, foods)
-with open('recipes.json', 'r') as recipes_file:
-    with open('ingredients_extract.json', 'r') as ingredients_file:
+with open('outfiles/recipes.json', 'r') as recipes_file:
+    with open('outfiles/ingredients_extract.json', 'r') as ingredients_file:
         recipes = json.load(recipes_file)
         ingredients = json.load(ingredients_file)
 
@@ -169,8 +169,8 @@ def genrecipes():
     i = 1
     foods = Food.query.all()
     food_names = map(lambda food: food.name, foods)
-    with open('recipes.json', 'r') as recipes_file:
-        with open('ingredients_extract.json', 'r') as ingredients_file:
+    with open('outfiles/recipes.json', 'r') as recipes_file:
+        with open('outfiles/ingredients_extract.json', 'r') as ingredients_file:
             recipes = json.load(recipes_file)
             ingredients = json.load(ingredients_file)
 
