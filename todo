@@ -3,7 +3,4 @@ done
 2 greedy algo: given recipe, minimize #stores visited, output stores
 3 define user profiles
 4 build recommendation model (algorithm + inputs)
-
-
-todo
 5 define JSON web interface (above services on endpoints)
