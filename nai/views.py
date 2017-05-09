@@ -1,5 +1,5 @@
 #!venv/bin/python
-from flask import redirect, url_for, render_template, request
+from flask import redirect, url_for, render_template, request, jsonify
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_mail import Message
@@ -201,11 +201,30 @@ def genrecipes():
                 db.session.commit()
                 print "added recipe", i, "and its ingredients :)"
                 i += 1
-
     return "recipes generated"
 
 # Uncomment this to generate recipes/ingredient mappings. 1025 of them
 # genrecipes()
+
+def get_store_json(store):
+    if store is None:
+        return {'id': -1,
+                'name': "n/a",
+                'address': "n/a" }
+    else:
+        return {'id': store.id,
+                'name': store.name,
+                'address': store.address }
+
+
+def get_food_json(food):
+    return {'id': food.id,
+            'name': food.name }
+            #'calories': food.calories,
+            #'fats': food.fats,
+            #'carbs': food.carbs,
+            #'proteins': food.proteins }
+
 
 @app.route('/getstores/<recipe_id>', methods=['GET'])
 def getstores(recipe_id):
@@ -242,6 +261,13 @@ def getstores(recipe_id):
         else:
             stores.append(None)
 
+    stores_json = []
+    for i in range(len(stores)):
+        store_json = get_store_json(stores[i])
+        store_json["grams"] = mappings[i].grams
+        store_json["food"] = get_food_json(foods[i])
+        stores_json.append(store_json)
+
     print "recipe for", recipe.name, ":"
     for i in range(len(stores)):
         if stores[i] is not None:
@@ -249,7 +275,8 @@ def getstores(recipe_id):
         else:
             print "no store found that has", mappings[i].grams, "grams of", foods[i].name
 
-    return "success! check server output"
+    #return "success! check server output"
+    return jsonify(stores=stores_json)
 
 
 @app.route('/genfoods', methods=['GET'])
@@ -354,14 +381,53 @@ def sum_food_scores(food_list, personal_foods_maps):
     return recipe_score
 
 
-# Generate top 3 recipes for a particular person
+def get_recipe_json(recipe, foods_dict):
+    instructions = recipe.instructions.split("\n")
+    ingredients = recipe.ingredients.split("\n")
+    foods_json = map(get_food_json, get_foods_in_recipe(recipe, foods_dict))
+
+    return {'id': recipe.id,
+            'name': recipe.name,
+            'cook_time': str(recipe.cook_time),
+            'prep_time': str(recipe.prep_time),
+            'dairy': recipe.dairy,
+            'starch': recipe.starch,
+            'veggies': recipe.veggies,
+            'protein': recipe.protein,
+            'cuisine': recipe.cuisine,
+            'ingredients': ingredients,
+            'instructions': instructions,
+            'food_list': foods_json }
+
+
+# Generate top suggestion_num recipes for a particular person
 @app.route('/suggestions/<person_id>', methods=['GET'])
 def suggestions(person_id):
+    # take proteins, cuisines, number of suggestions from args
+    protein = request.args.get("protein")
+    cuisine = request.args.get("cuisine")
+    suggestion_num = request.args.get("suggestion_num")
+    if not suggestion_num: suggestion_num = SUGGESTION_NUM
     master_list = []
     person = Person.query.filter_by(id=person_id).first()
     if not person: return "bad person, fool"
     foods_dict = dict((food.id, food) for food in Food.query.all())
     recipes = Recipe.query.all()
+    print "pre filter", len(recipes)
+    if protein == "chicken": recipes = filter(lambda r: (r.protein-2**4)>=0 and (r.protein-2**4)%2==0, recipes)
+    if protein == "beef": recipes = filter(lambda r: (r.protein-2**3)>=0 and (r.protein-2**3)%2==0, recipes)
+    if protein == "pork": recipes = filter(lambda r: (r.protein-2**2)>=0 and (r.protein-2**2)%2==0, recipes)
+    if protein == "lamb": recipes = filter(lambda r: (r.protein-2**1)>=0 and (r.protein-2**1)%2==0, recipes)
+    if protein == "eggs": recipes = filter(lambda r: (r.protein-2**0)>=0 and (r.protein-2**0)%2==0, recipes)
+    if protein == "vegetarian": recipes = filter(lambda r: (r.protein)==0, recipes)
+    if cuisine == "french": recipes = filter(lambda r: (r.cuisine-2**5)>=0 and (r.cuisine-2**5)%2==0, recipes)
+    if cuisine == "chinese": recipes = filter(lambda r: (r.cuisine-2**4)>=0 and (r.cuisine-2**4)%2==0, recipes)
+    if cuisine == "indian": recipes = filter(lambda r: (r.cuisine-2**3)>=0 and (r.cuisine-2**3)%2==0, recipes)
+    if cuisine == "italian": recipes = filter(lambda r: (r.cuisine-2**2)>=0 and (r.cuisine-2**2)%2==0, recipes)
+    if cuisine == "american": recipes = filter(lambda r: (r.cuisine-2**1)>=0 and (r.cuisine-2**1)%2==0, recipes)
+    if cuisine == "mediterranean": recipes = filter(lambda r: (r.cuisine-2**0)>=0 and (r.cuisine-2**0)%2==0, recipes)
+    if cuisine == "south_american": recipes = filter(lambda r: (r.cuisine)==0, recipes)
+    print "post filter", len(recipes)
     personal_foods_maps = PersonFoodMap.query.filter_by(person_id=person.id).all()
     # for variety, pick random subset from top 5% of recipe_score range
     for recipe in recipes:
@@ -369,12 +435,19 @@ def suggestions(person_id):
         recipe_score = sum_food_scores(ingredients, personal_foods_maps)
         master_list.append([recipe_score, recipe])
 
-    top = sorted(master_list, reverse=True)[:len(recipes)/(100/VARIETY_PERCENT)] # top 1% if VP=1
+    limit = len(recipes)/(100/VARIETY_PERCENT)
+    if limit < suggestion_num: limit = suggestion_num
+    top = sorted(master_list, reverse=True)[:limit] # top 1% if VP=1
     random.shuffle(top)
-    suggestions = [x for x in top[:SUGGESTION_NUM]]
-    for score, recipe in suggestions: print score, recipe.id, recipe.name
+    suggestions = [x for x in top[:suggestion_num]]
+    recipes_json = []
+    for score, recipe in suggestions:
+        print score, recipe.id, recipe.name
+        recipe_json = get_recipe_json(recipe, foods_dict)
+        recipe_json["score"] = score
+        recipes_json.append(recipe_json)
 
-    return "recipes suggested"
+    return jsonify(recipes=recipes_json)
 
 
 # Based on selection of recipe, modify food.pref_scores for person

@@ -1,6 +1,9 @@
 # Nutritional AI
 
 This is Sakib and Ming's Nutritional AI App that uses Flask/SQLAlchemy.
+
+## Overview
+
 ## Setup
 
 After going into the directory, these are the steps to get the app up and running locally:
