@@ -37,8 +37,9 @@ def get_distance_matrix(start, places, end, depart_delay):
 
     # Create list of lat/lng for start location and stores
     start_list = list()
+    print "gcode_start"
     gcode_start = gmaps.geocode(start)
-#    pprint(gcode_start)
+    pprint(gcode_start)
     loc_list = list()
     loc_list.append(gcode_start[0]['geometry']['location'])
 
@@ -47,7 +48,8 @@ def get_distance_matrix(start, places, end, depart_delay):
         for place in places:
             pprint(place)
             gcode_place = gmaps.geocode(place)
-#            pprint(gcode_place)
+            print "Printing gcode_place\n"
+            pprint(gcode_place)
             loc_list.append(gcode_place[0]['geometry']['location'])
 
     gcode_end = gmaps.geocode(end)

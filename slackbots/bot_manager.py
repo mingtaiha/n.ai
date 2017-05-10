@@ -33,6 +33,7 @@ next_message = {
 				'cart_offline'			: 'What would you like to buy in person?',
                 'amazon_buyer'          : 'Let me find the items you want to buy online.',
                 'route_planner'         : 'What is your starting address?',
+                'end'                   : 'Have a safe trip!'
                } 
 
 
@@ -99,13 +100,12 @@ if __name__ == "__main__":
         food_city_place = None
         items_online = None
         items_offline = None
+        city_places = list()
 
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
             if command and channel:
                 if channel == BOT_MANAGER_CHANNEL:
-                    print service_queue[0]
-                    print service_queue[0] == 'amazon_buyer'
 
                     if service_queue[0] == "nutrition_ai":
                         food_city_place = na.handle_command(command, channel) 
@@ -130,6 +130,31 @@ if __name__ == "__main__":
                         pprint.pprint(items_offline)
                         service_queue.extend(service_dag[service_queue[0]])
                         del service_queue[0]
+
+                        pprint.pprint(items_offline) 
+                        pprint.pprint(food_city_place)
+
+                        for item in items_offline:
+                            for food, city_place in food_city_place.iteritems():
+                                if item.title() == food:
+                                    city_places.append(city_place)
+                        
+                        #pprint.pprint(city_places)
+                        if not city_places:
+                            distinct_city_places = list(set(food_city_place.values()))
+                            city_places.append(distinct_city_places[-1])
+                        pprint.pprint(city_places)
+
+                        stores_msg_user = "You can get all the ingredients at these stores:\n"
+                        for place in city_places:
+                            stores_msg_user = stores_msg_user + "\t" + place + "\n"
+
+                        slack_client.api_call('chat.postMessage', channel=channel,
+                                            text=stores_msg_user, as_user=True)
+
+                        items_offline = None
+                        city_places = list()
+
                         slack_client.api_call('chat.postMessage', channel=channel,
                                             text=next_message[service_queue[0]], as_user=True)
                         print service_queue
@@ -153,31 +178,31 @@ if __name__ == "__main__":
                         print service_queue
                     
                     elif service_queue[0] == 'route_planner':
-                        pprint.pprint(items_offline) 
-                        pprint.pprint(food_city_place)
-                        
-                        city_places = list()
-                        for item in items_offline:
-                            for food, city_place in food_city_place.iteritems():
-                                if item.title() == food:
-                                    city_places.append(city_place)
-                        
-                        pprint.pprint(city_places)
-                        if not city_places:
-                            distinct_city_places = list(set(food_city_place.values()))
-                            city_places.append(distinct_city_places[-1])
-                        pprint.pprint(city_places)
+                        is_finished = rp.handle_command(command, channel)
+                        if is_finished:
+                            service_queue.extend(service_dag[service_queue[0]])
+                            del service_queue[0]
 
-                    #elif service_queue[0] == 'end':
-                    #    service_queue.extend(service_dag[service_queue[0]])
-                    #    del service_queue[0]
-                    #    print "Restarting the service"
+                            slack_client.api_call('chat.postMessage', channel=channel,
+                                            text=next_message[service_queue[0]], as_user=True)
 
                     else:
                         print "what's the service you're asking for?"
                     
                 else:
                     print "got a message NOT from computer networks"
+
+            if service_queue[0] == 'end':
+                if len(service_queue) == 1:
+                    service_queue.extend(service_dag[service_queue[0]])
+                    print "Restarting the service"
+                else:
+                    print "Reached an end state"
+                    del service_queue[0]
+            if service_queue[0] == 'start':
+                service_queue.extend(service_dag[service_queue[0]])
+                del service_queue[0]
+
             print service_queue
             time.sleep(READ_WEBSOCKET_DELAY)
             print None

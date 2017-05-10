@@ -69,7 +69,8 @@ def handle_command(command, channel):
             for i in range(len(cost)):
                 response = response + "Go from {0} to {1}. Takes about {2} minutes\n".format(store_route[i], store_route[i+1], round(cost[i]))
 
-
+            slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+            return 1
 
     elif apiai_resp['result']['metadata']['intentName'] == 'find_place':
         if apiai_resp['result']['actionIncomplete'] == False:
@@ -84,8 +85,10 @@ def handle_command(command, channel):
 
     else:
         print "Intent not implemented\n"
-
+       
+    
     slack_client.api_call("chat.postMessage", channel=channel, text=response, as_user=True)
+    return 0
 
 def parse_slack_output(slack_rtm_output):
     """
