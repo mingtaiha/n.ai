@@ -7,6 +7,7 @@ import purchase_amazon as pa
 
 #from environ variable
 BOT_ID = os.environ.get("AMAZON_BUYER_ID")
+BOT_MANAGER_CHANNEL = os.environ.get("BOT_MANAGER_CHANNEL")
 
 #constants
 AT_BOT = "<@" + BOT_ID + ">"
@@ -70,8 +71,10 @@ if __name__ == "__main__":
         print "amazon_buyer bot connected and running!\n"
         while True:
             command, channel = parse_slack_output(slack_client.rtm_read())
-            if command and channel:
+            if command and channel and (channel != BOT_MANAGER_CHANNEL):
                 handle_command(command, channel)
+            elif channel and (channel == BOT_MANAGER_CHANNEL):
+                print "got a message from the computer_networks channel"
             time.sleep(READ_WEBSOCKET_DELAY)
             print None
     else:

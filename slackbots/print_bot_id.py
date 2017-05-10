@@ -1,11 +1,10 @@
 import os
-import sys
 from slackclient import SlackClient
 
 
-BOT_NAME = sys.argv[1]
+BOT_NAME = 'test-bot'
 
-slack_client = SlackClient(os.environ.get(BOT_NAME.upper() + '_TOKEN'))
+slack_client = SlackClient(os.environ.get('SLACK_BOT_TOKEN'))
 
 
 if __name__ == "__main__":

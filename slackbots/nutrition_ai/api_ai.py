@@ -5,7 +5,7 @@ import apiai
 import pprint
 
 
-CLIENT_ACCESS_TOKEN = os.environ['AMAZON_BUYER_APIAI_TOKEN']
+CLIENT_ACCESS_TOKEN = os.environ['NUTRITION_AI_APIAI_TOKEN']
 
 ai = apiai.ApiAI(CLIENT_ACCESS_TOKEN)
 
@@ -21,16 +21,19 @@ def query_apiai(query_str, session_id):
     resp_dict = json.loads(resp_read)
     return resp_dict
 
-def parse_buy_items(response):
+def parse_recipe_fields(response):
     
-    resp_data = response['result']['parameters']['item']
-    return resp_data
+    protein_cuisine_dict = dict()
+    protein_cuisine_dict['protein'] = response['result']['parameters']['protein']
+    if response['result']['parameters']['cuisine']:
+        protein_cuisine_dict['cuisine'] = response['result']['parameters']['cuisine']
+    return protein_cuisine_dict
 
 def parse_result(response):
     
-    if response['result']['action'] == "buy_items":
-        print "buy_items\n"
-        return parse_plan_action(response)
+    if response['result']['action'] == "get_recipe":
+        print "get_recipe\n"
+        return parse_recipe_fields(response)
     else:
         print "Not yet defined"
         return None
