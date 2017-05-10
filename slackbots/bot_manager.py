@@ -137,18 +137,36 @@ if __name__ == "__main__":
                     #elif service_queue[0] == 'amazon_buyer':
                         print "in amazon_buy"
                         amazon_buy = "I want to get"
-                        for item in items_online:
-                            amazon_buy = amazon_buy + " " + item
+                        for i in range(len(items_online)):
+                            if i == (len(items_online) - 1):
+                                amazon_buy = amazon_buy + " and " + items_online[i]
+                            elif i == 0:
+                                amazon_buy = amazon_buy + " " + items_online[i]
+                            else:
+                                amazon_buy = amazon_buy + ", " + items_online[i]
                         ab.handle_command(amazon_buy, channel)
                         service_queue.extend(service_dag[service_queue[0]])
                         del service_queue[0]
                         slack_client.api_call('chat.postMessage', channel=channel,
                                             text=next_message[service_queue[0]], as_user=True)
+                        items_online = None
                         print service_queue
                     
                     elif service_queue[0] == 'route_planner':
-                        pass
+                        pprint.pprint(items_offline) 
+                        pprint.pprint(food_city_place)
                         
+                        city_places = list()
+                        for item in items_offline:
+                            for food, city_place in food_city_place.iteritems():
+                                if item.title() == food:
+                                    city_places.append(city_place)
+                        
+                        pprint.pprint(city_places)
+                        if not city_places:
+                            distinct_city_places = list(set(food_city_place.values()))
+                            city_places.append(distinct_city_places[-1])
+                        pprint.pprint(city_places)
 
                     #elif service_queue[0] == 'end':
                     #    service_queue.extend(service_dag[service_queue[0]])
